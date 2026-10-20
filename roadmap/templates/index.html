@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Jira project roadmap</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #172b4d;
+        background: #f4f5f7;
+      }
+      body { margin: 0; }
+      main { max-width: 1120px; margin: 0 auto; padding: 48px 24px; }
+      .eyebrow { color: #5e6c84; font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+      h1 { margin: 8px 0; font-size: clamp(2rem, 5vw, 3rem); letter-spacing: -.04em; }
+      .intro { margin: 0 0 32px; color: #5e6c84; }
+      .panel { overflow: hidden; border: 1px solid #dfe1e6; border-radius: 12px; background: #fff; box-shadow: 0 4px 16px #091e4210; }
+      .notice { padding: 24px; }
+      .notice h2 { margin: 0 0 8px; font-size: 1.1rem; }
+      .notice p { margin: 0; color: #5e6c84; }
+      .notice code { color: #172b4d; }
+      .error { border-left: 4px solid #de350b; }
+      .warning { display: inline-block; margin-top: 5px; color: #974f0c; font-size: .8rem; white-space: normal; }
+      .demo-notice { margin-bottom: 20px; border-left: 4px solid #ffab00; }
+      .empty { padding: 36px 24px; text-align: center; color: #5e6c84; }
+      .view-tabs { display: flex; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid #dfe1e6; }
+      .view-tab { padding: 11px 16px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: #5e6c84; font: inherit; font-weight: 650; cursor: pointer; }
+      .view-tab[aria-selected="true"] { border-bottom-color: #0052cc; color: #0052cc; }
+      .view-tab:focus-visible { outline: 2px solid #4c9aff; outline-offset: 2px; }
+      .table-wrap { overflow-x: auto; }
+      .table-toolbar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #ebecf0; color: #5e6c84; font-size: .8rem; font-weight: 650; }
+      .roadmap-table { width: 100%; min-width: 980px; table-layout: auto; }
+      .roadmap-table th, .roadmap-table td { padding: 11px 12px; }
+      .roadmap-table .date-cell { width: 92px; min-width: 92px; max-width: 92px; white-space: nowrap; font-size: .85rem; }
+      .roadmap-table th:not(:nth-child(4)), .roadmap-table td:not(:nth-child(4)) { width: 1%; white-space: nowrap; }
+      .roadmap-table th:nth-child(4), .roadmap-table td:nth-child(4) { width: auto; }
+      .column-heading { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+      .column-tools { display: flex; align-items: center; gap: 3px; }
+      .column-menu { position: relative; }
+      .column-menu summary { display: grid; width: 24px; height: 24px; place-items: center; border-radius: 4px; color: #5e6c84; font-size: 1rem; list-style: none; cursor: pointer; }
+      .column-menu summary::-webkit-details-marker { display: none; }
+      .column-menu summary[aria-label^="Filter"] { font-size: 0; }
+      .column-menu summary[aria-label^="Filter"]::before { width: 13px; height: 13px; background: currentColor; clip-path: polygon(0 12%, 100% 12%, 62% 52%, 62% 82%, 38% 100%, 38% 52%); content: ""; }
+      .column-menu summary:hover, .column-menu[open] summary { background: #deebff; color: #0052cc; }
+      .column-popover { position: absolute; z-index: 6; top: calc(100% + 6px); right: 0; display: grid; gap: 8px; min-width: 190px; max-height: 260px; overflow: auto; padding: 12px; border: 1px solid #dfe1e6; border-radius: 7px; background: #fff; box-shadow: 0 4px 14px #091e4220; color: #172b4d; font-size: .8rem; font-weight: 400; letter-spacing: normal; text-transform: none; }
+      .column-menu:not([open]) > .column-popover { display: none; }
+      .column-popover input, .column-popover select { width: 100%; min-width: 0; padding: 7px; border: 1px solid #dfe1e6; border-radius: 5px; background: #fff; color: #172b4d; font: inherit; }
+      .column-popover label { display: flex; align-items: center; gap: 7px; font-weight: 400; letter-spacing: normal; text-transform: none; white-space: nowrap; }
+      .column-popover label input { width: auto; margin: 0; }
+      .sort-choice { padding: 7px; border: 0; border-radius: 4px; background: transparent; color: #172b4d; font: inherit; text-align: left; cursor: pointer; }
+      .sort-choice:hover { background: #f4f5f7; color: #0052cc; }
+      .filter-caption { color: #5e6c84; font-size: .72rem; }
+      .table-group[hidden], .issue-row[hidden] { display: none; }
+      .timeline-scroll { overflow-x: auto; }
+      .timeline-chart { min-width: 780px; }
+      .timeline-header, .timeline-row { display: grid; grid-template-columns: 250px minmax(520px, 1fr); }
+      .timeline-header { border-bottom: 1px solid #dfe1e6; background: #fafbfc; }
+      .timeline-label { padding: 13px 16px; color: #5e6c84; font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+      .timeline-group { grid-column: 1 / -1; padding: 10px 16px; border-bottom: 1px solid #ebecf0; background: #fafbfc; }
+      .timeline-track { position: relative; min-height: 48px; }
+      .timeline-axis { height: 48px; }
+      .month-tick { position: absolute; top: 0; bottom: 0; border-left: 1px solid #ebecf0; }
+      .month-label { position: absolute; top: 15px; left: 6px; color: #5e6c84; font-size: .75rem; white-space: nowrap; }
+      .timeline-row { min-height: 76px; border-bottom: 1px solid #ebecf0; }
+      .timeline-row:last-child { border-bottom: 0; }
+      .timeline-issue { padding: 15px 16px; }
+      .timeline-issue strong { color: #0052cc; }
+      .timeline-issue .issue-link { display: block; width: fit-content; margin-top: 4px; font-size: .75rem; }
+      .timeline-issue .issue-key-placeholder { display: block; margin-top: 4px; font-size: .75rem; }
+      .timeline-issue .summary { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .timeline-issue .muted { display: block; margin-top: 4px; }
+      .type-tag { display: inline-block; margin-top: 5px; padding: 3px 7px; border-radius: 4px; background: #f4f5f7; color: #5e6c84; font-size: .72rem; font-weight: 650; }
+      .timeline-gridline { position: absolute; z-index: 0; top: 0; bottom: 0; border-left: 1px solid #f0f1f3; }
+      .timeline-bar { position: absolute; z-index: 1; top: 26px; height: 24px; min-width: 5px; overflow: hidden; padding: 3px 8px; border-radius: 6px; background: #4c9aff; color: #fff; font-size: .75rem; line-height: 18px; text-overflow: ellipsis; white-space: nowrap; box-sizing: border-box; }
+      a.timeline-bar { color: #fff; font-weight: 500; text-decoration: none; }
+      a.timeline-bar:hover { color: #fff; text-decoration: underline; }
+      .timeline-point { position: absolute; top: 31px; width: 12px; height: 12px; border: 3px solid #fff; border-radius: 50%; background: #4c9aff; box-shadow: 0 0 0 1px #4c9aff; transform: translateX(-50%); }
+      .timeline-bar.status-completed, .timeline-point.status-completed { background-color: #36b37e; }
+      .timeline-bar.status-in-progress, .timeline-point.status-in-progress { background-color: #4c9aff; }
+      .timeline-bar.status-framing, .timeline-point.status-framing { background-color: #ffab00; }
+      .timeline-bar.status-backlog, .timeline-point.status-backlog { background-color: #8993a4; }
+      .timeline-bar.status-blocked, .timeline-point.status-blocked { background-color: #de350b; }
+      .timeline-milestone { position: absolute; z-index: 2; top: 26px; display: inline-flex; align-items: center; gap: 6px; color: #172b4d; font-size: .75rem; line-height: 18px; text-decoration: none; white-space: nowrap; transform: translateX(-6px); }
+      .timeline-milestone:hover { text-decoration: underline; }
+      .timeline-milestone .timeline-point { position: static; flex: 0 0 12px; transform: none; }
+      .timeline-milestone.status-completed .timeline-point { background-color: #36b37e; box-shadow: 0 0 0 1px #36b37e; }
+      .timeline-milestone.status-in-progress .timeline-point { background-color: #4c9aff; box-shadow: 0 0 0 1px #4c9aff; }
+      .timeline-milestone.status-framing .timeline-point { background-color: #ffab00; box-shadow: 0 0 0 1px #ffab00; }
+      .timeline-milestone.status-backlog .timeline-point { background-color: #8993a4; box-shadow: 0 0 0 1px #8993a4; }
+      .timeline-milestone.status-blocked .timeline-point { background-color: #de350b; box-shadow: 0 0 0 1px #de350b; }
+      .timeline-warning { padding: 15px 16px; color: #974f0c; font-size: .85rem; }
+      .status-legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 0 0 12px; color: #5e6c84; font-size: .85rem; }
+      .legend-item { display: inline-flex; align-items: center; gap: 7px; }
+      .legend-swatch { width: 12px; height: 12px; border-radius: 3px; }
+      .status-completed { background-color: #36b37e; }
+      .status-in-progress { background-color: #4c9aff; }
+      .status-framing { background-color: #ffab00; }
+      .status-backlog { background-color: #8993a4; }
+      .status-blocked { background-color: #de350b; }
+      .domain-tag { display: inline-block; padding: 4px 9px; border-radius: 999px; font-size: .78rem; font-weight: 650; white-space: nowrap; }
+      .domain-offre { background: #eae6ff; color: #403294; }
+      .domain-supply { background: #e3fcef; color: #006644; }
+      .domain-default { background: #deebff; color: #0747a6; }
+      .priority { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+      .priority-icon { font-size: 1.1rem; font-weight: 800; line-height: 1; }
+      .priority-highest, .priority-high { color: #de350b; }
+      .priority-medium { color: #ff8b00; }
+      .priority-low, .priority-lowest { color: #0065ff; }
+      .priority-default { color: #5e6c84; }
+      .table-group { background: #fafbfc; }
+      .table-group th { padding: 10px 16px; border-top: 1px solid #dfe1e6; }
+      .issue-key { white-space: nowrap; }
+      .issue-key-placeholder { color: #de350b; font-weight: 700; }
+      .page-title-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+      .add-issue-button { display: inline-grid; width: 44px; height: 44px; place-items: center; border: 0; border-radius: 50%; background: #0052cc; color: #fff; font-size: 1.6rem; cursor: pointer; box-shadow: 0 3px 8px #091e4230; }
+      .add-issue-button::before { content: "+"; }
+      .add-issue-button:hover { background: #0747a6; }
+      .issue-context-menu { position: fixed; z-index: 20; min-width: 180px; padding: 5px; border: 1px solid #dfe1e6; border-radius: 6px; background: #fff; box-shadow: 0 4px 14px #091e4230; }
+      .issue-context-menu[hidden] { display: none; }
+      .issue-context-menu button { display: block; width: 100%; padding: 9px 12px; border: 0; border-radius: 4px; background: transparent; color: #172b4d; font: inherit; text-align: left; cursor: pointer; }
+      .issue-context-menu button:hover, .issue-context-menu button:focus { background: #f4f5f7; }
+      .issue-context-menu button[data-action="delete"] { color: #bf2600; }
+      .notice-message { margin: 12px 0; padding: 12px 16px; border-radius: 7px; }
+      .notice-success { background: #e3fcef; color: #006644; }
+      .notice-error { background: #ffebe6; color: #bf2600; }
+      dialog { width: min(600px, calc(100% - 32px)); max-height: 90vh; overflow-y: auto; padding: 0; border: 0; border-radius: 12px; color: #172b4d; box-shadow: 0 12px 48px #091e4250; }
+      dialog::backdrop { background: #091e4280; }
+      .dialog-content { padding: 24px; }
+      .dialog-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+      .dialog-header h2 { margin: 0; }
+      .dialog-close { border: 0; background: none; color: #5e6c84; font-size: 1.5rem; cursor: pointer; }
+      .issue-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+      .issue-form label { display: grid; gap: 5px; color: #5e6c84; font-size: .85rem; font-weight: 600; }
+      .issue-form input, .issue-form select, .issue-form textarea { width: 100%; box-sizing: border-box; padding: 9px; border: 1px solid #dfe1e6; border-radius: 5px; color: #172b4d; font: inherit; }
+      .issue-form .form-wide { grid-column: 1 / -1; }
+      .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+      .form-actions button { padding: 9px 14px; border: 1px solid #dfe1e6; border-radius: 5px; background: #fff; color: #172b4d; font: inherit; cursor: pointer; }
+      .form-actions button[type="submit"] { border-color: #0052cc; background: #0052cc; color: #fff; }
+      .form-actions .delete-confirm-button { border-color: #bf2600; background: #bf2600; color: #fff; }
+      table { width: 100%; border-collapse: collapse; text-align: left; }
+      th { padding: 14px 16px; color: #5e6c84; background: #fafbfc; font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; }
+      td { padding: 16px; border-top: 1px solid #ebecf0; vertical-align: top; }
+      tr:hover td { background: #fafbfc; }
+      a { color: #0052cc; font-weight: 700; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .summary { display: block; max-width: 460px; margin-top: 4px; color: #172b4d; font-weight: 400; }
+      .roadmap-table .summary { max-width: none; }
+      .issue-description { color: #5e6c84; font-size: .78rem; line-height: 1.35; }
+      .dates { min-width: 155px; white-space: nowrap; }
+      .muted { color: #7a869a; }
+      .badge { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #deebff; color: #0747a6; font-size: .8rem; white-space: nowrap; }
+      @media (max-width: 700px) {
+        main { padding: 32px 16px; }
+        th, td { padding: 12px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Project planning</p>
+      <div class="page-title-row">
+        <h1>Jira roadmap</h1>
+        <button class="add-issue-button" type="button" id="open-add-issue" aria-label="Ajouter un chantier" title="Ajouter un chantier"></button>
+      </div>
+      <p class="intro">A live view of project issues and their available planning details.</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <p class="notice-message notice-{{ category }}" role="status">{{ message }}</p>
+        {% endfor %}
+      {% endwith %}
+      <dialog id="add-issue-dialog" aria-labelledby="add-issue-title">
+        <div class="dialog-content">
+          <div class="dialog-header">
+            <h2 id="add-issue-title">Nouveau chantier</h2>
+            <button class="dialog-close" type="button" id="close-add-issue" aria-label="Fermer">×</button>
+          </div>
+          <p>Ajout local à cette roadmap uniquement. La clé ouvre le ticket correspondant sur Jira ADEO dans un nouvel onglet.</p>
+          <form class="issue-form" method="post" action="{{ url_for('add_issue') }}" data-add-action="{{ url_for('add_issue') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <label>Clé Jira (facultatif)
+              <input name="key" placeholder="ROAD-123">
+            </label>
+            <label>Résumé *
+              <input name="summary" required maxlength="300">
+            </label>
+            <label>Type
+              <select name="issue_type" required>
+                <option value="" selected disabled>Choisir un type</option>
+                <option>Onboarding</option><option>Upgrade</option><option>Improvement</option>
+              </select>
+            </label>
+            <label>Statut
+              <select name="status">
+                <option>Backlog</option><option>En cadrage</option><option>En cours</option><option>Bloqué</option><option>Terminé</option>
+              </select>
+            </label>
+            <label>Priorité
+              <select name="priority">
+                <option>Basse</option><option selected>Moyenne</option><option>Élevée</option><option>Très élevée</option>
+              </select>
+            </label>
+            <label>Domaine
+              <select name="domain" required>
+                <option value="" selected disabled>Choisir un domaine</option>
+                <option>Offre</option><option>Supply</option><option>Travaux</option>
+              </select>
+            </label>
+            <label>Responsable
+              <input name="assignee" maxlength="120">
+            </label>
+            <label>Business
+              <input name="business_sponsor" maxlength="120">
+            </label>
+            <label>Date de début
+              <input name="start_date" type="date">
+            </label>
+            <label>Date de fin
+              <input name="due_date" type="date">
+            </label>
+            <label class="form-wide">Description
+              <textarea name="description" rows="3" maxlength="2000"></textarea>
+            </label>
+            <div class="form-actions form-wide">
+              <button type="button" id="cancel-add-issue">Annuler</button>
+              <button type="submit">Ajouter le chantier</button>
+            </div>
+          </form>
+        </div>
+      </dialog>
+      <div id="issue-context-menu" class="issue-context-menu" role="menu" aria-label="Actions du chantier" hidden>
+        <button type="button" role="menuitem" data-action="edit">Modifier</button>
+        <button type="button" role="menuitem" data-action="delete">Supprimer</button>
+      </div>
+      <form id="delete-issue-form" method="post" hidden>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      </form>
+      <dialog id="confirm-delete-dialog" aria-labelledby="confirm-delete-title">
+        <div class="dialog-content">
+          <div class="dialog-header">
+            <h2 id="confirm-delete-title">Confirmer la suppression</h2>
+          </div>
+          <p id="confirm-delete-message"></p>
+          <div class="form-actions">
+            <button type="button" id="cancel-delete-issue">Annuler</button>
+            <button type="button" class="delete-confirm-button" id="confirm-delete-issue">Confirmer la suppression</button>
+          </div>
+        </div>
+      </dialog>
+
+      {% if demo_mode %}
+        <section class="panel notice demo-notice">
+          <h2>Demo roadmap</h2>
+          <p>{{ setup_error }} The issues below are sample data; configure Jira to see live project data.</p>
+        </section>
+      {% elif setup_error %}
+        <section class="panel notice">
+          <h2>Connect your Jira Cloud site</h2>
+          <p>{{ setup_error }} See <code>README.md</code> for setup instructions. Your API token stays on this server.</p>
+        </section>
+      {% elif error %}
+        <section class="panel notice error" role="alert">
+          <h2>Jira connection failed</h2>
+          <p>{{ error }}</p>
+        </section>
+      {% endif %}
+      {% if issues %}
+        <div class="view-tabs" role="tablist" aria-label="Roadmap views">
+          <button class="view-tab" id="table-tab" type="button" role="tab" aria-selected="true" aria-controls="table-panel" tabindex="0">Tableau</button>
+          <button class="view-tab" id="timeline-tab" type="button" role="tab" aria-selected="false" aria-controls="timeline-panel" tabindex="-1">Timeline</button>
+        </div>
+        <section class="panel table-wrap" id="table-panel" role="tabpanel" aria-labelledby="table-tab">
+          <div class="table-toolbar">
+            <span>Domaine</span>
+            <details class="column-menu"><summary aria-label="Filter by domain">▽</summary><div class="column-popover">
+              {% for domain in issues|map(attribute="domain")|unique|sort %}{% if domain %}<label><input type="checkbox" data-multi-filter="domain" value="{{ domain }}"> {{ domain }}</label>{% endif %}{% endfor %}
+              {% if issues|selectattr("domain", "equalto", "")|list %}<label><input type="checkbox" data-multi-filter="domain" value=""> Sans domaine</label>{% endif %}
+            </div></details>
+            <details class="column-menu"><summary aria-label="Sort domains">↕</summary><div class="column-popover">
+              <button class="sort-choice" type="button" data-sort="domain" data-direction="asc">A → Z</button>
+              <button class="sort-choice" type="button" data-sort="domain" data-direction="desc">Z → A</button>
+            </div></details>
+          </div>
+          <table class="roadmap-table" id="roadmap-table">
+            <thead>
+              <tr>
+                <th>
+                  <div class="column-heading"><span>Start</span><span class="column-tools">
+                    <details class="column-menu"><summary aria-label="Filter start date">▽</summary><div class="column-popover">
+                      <span class="filter-caption">Filtrer la date de début</span><select aria-label="Start date comparison" data-date-operator="start_date"><option value="on-or-before">Avant ou le</option><option value="on-or-after">Après ou le</option></select><input type="date" aria-label="Filter start date" data-date-filter="start_date">
+                    </div></details>
+                    <details class="column-menu"><summary aria-label="Sort start date">↕</summary><div class="column-popover"><button class="sort-choice" type="button" data-sort="start_date" data-direction="asc">Croissant</button><button class="sort-choice" type="button" data-sort="start_date" data-direction="desc">Décroissant</button></div></details>
+                  </span></div>
+                </th>
+                <th>
+                  <div class="column-heading"><span>End</span><span class="column-tools">
+                    <details class="column-menu"><summary aria-label="Filter end date">▽</summary><div class="column-popover">
+                      <span class="filter-caption">Filtrer la date de fin</span><select aria-label="End date comparison" data-date-operator="due_date"><option value="on-or-before">Avant ou le</option><option value="on-or-after">Après ou le</option></select><input type="date" aria-label="Filter end date" data-date-filter="due_date">
+                    </div></details>
+                    <details class="column-menu"><summary aria-label="Sort end date">↕</summary><div class="column-popover"><button class="sort-choice" type="button" data-sort="due_date" data-direction="asc">Croissant</button><button class="sort-choice" type="button" data-sort="due_date" data-direction="desc">Décroissant</button></div></details>
+                  </span></div>
+                </th>
+                {% for column, label in [("key", "Key"), ("summary", "Issue")] %}
+                  <th scope="col"><div class="column-heading"><span>{{ label }}</span><span class="column-tools">
+                    <details class="column-menu"><summary aria-label="Filter {{ label }}">▽</summary><div class="column-popover"><input type="search" aria-label="Filter {{ label }}" placeholder="Rechercher…" data-text-filter="{{ column }}"></div></details>
+                    <details class="column-menu"><summary aria-label="Sort {{ label }}">↕</summary><div class="column-popover"><button class="sort-choice" type="button" data-sort="{{ column }}" data-direction="asc">A → Z</button><button class="sort-choice" type="button" data-sort="{{ column }}" data-direction="desc">Z → A</button></div></details>
+                  </span></div></th>
+                {% endfor %}
+                <th scope="col"><div class="column-heading"><span>Type</span><span class="column-tools">
+                  <details class="column-menu"><summary aria-label="Filter by type">▽</summary><div class="column-popover">
+                    {% for issue_type in issues|map(attribute="issue_type")|unique|sort %}<label><input type="checkbox" data-multi-filter="issue_type" value="{{ issue_type }}"> {{ issue_type }}</label>{% endfor %}
+                  </div></details>
+                  <details class="column-menu"><summary aria-label="Sort type">↕</summary><div class="column-popover"><button class="sort-choice" type="button" data-sort="issue_type" data-direction="asc">A → Z</button><button class="sort-choice" type="button" data-sort="issue_type" data-direction="desc">Z → A</button></div></details>
+                </span></div></th>
+                <th scope="col"><div class="column-heading"><span>Status</span><span class="column-tools">
+                  <details class="column-menu"><summary aria-label="Filter by status">▽</summary><div class="column-popover">
+                    {% for status in issues|map(attribute="status")|unique|sort %}<label><input type="checkbox" data-multi-filter="status" value="{{ status }}"> {{ status }}</label>{% endfor %}
+                  </div></details>
+                  <details class="column-menu"><summary aria-label="Sort status">↕</summary><div class="column-popover"><button class="sort-choice" type="button" data-sort="status" data-direction="asc">A → Z</button><button class="sort-choice" type="button" data-sort="status" data-direction="desc">Z → A</button></div></details>
+                </span></div></th>
+                {% for column, label in [("priority", "Priority"), ("assignee", "Assignee"), ("business_sponsor", "Business")] %}
+                  <th scope="col"><div class="column-heading"><span>{{ label }}</span><span class="column-tools">
+                    <details class="column-menu"><summary aria-label="Filter {{ label }}">▽</summary><div class="column-popover"><input type="search" aria-label="Filter {{ label }}" placeholder="Rechercher…" data-text-filter="{{ column }}"></div></details>
+                    <details class="column-menu"><summary aria-label="Sort {{ label }}">↕</summary><div class="column-popover"><button class="sort-choice" type="button" data-sort="{{ column }}" data-direction="asc">A → Z</button><button class="sort-choice" type="button" data-sort="{{ column }}" data-direction="desc">Z → A</button></div></details>
+                  </span></div></th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for group in timeline.groups %}
+                <tr class="table-group" data-group="{{ group.domain }}">
+                  <th scope="rowgroup" colspan="9">
+                    <span class="domain-tag domain-{{ group.domain_color }}">{{ group.domain }}</span>
+                  </th>
+                </tr>
+                {% for issue in group.issues %}
+                  <tr class="issue-row" data-group="{{ group.domain }}"
+                    {% if issue.file_id is defined %}data-edit-url="{{ url_for('edit_issue', file_id=issue.file_id) }}"
+                    data-delete-url="{{ url_for('delete_issue', file_id=issue.file_id) }}"
+                    data-issue='{{ issue|tojson }}' tabindex="0" aria-haspopup="menu"{% endif %}
+                    data-start_date="{{ issue.start_date or '' }}" data-due_date="{{ issue.due_date or '' }}"
+                    data-key="{{ issue.key }}" data-summary="{{ issue.summary }}"
+                    data-issue_type="{{ issue.issue_type }}" data-status="{{ issue.status }}"
+                    data-priority="{{ issue.priority }}" data-assignee="{{ issue.assignee }}"
+                    data-domain="{{ issue.domain }}" data-business_sponsor="{{ issue.business_sponsor }}">
+                    <td class="date-cell">{% if issue.start_date %}{{ issue.start_date[8:10] }}/{{ issue.start_date[5:7] }}/{{ issue.start_date[:4] }}{% else %}<span class="muted">—</span>{% endif %}</td>
+                    <td class="date-cell">
+                      {% if issue.due_date %}{{ issue.due_date[8:10] }}/{{ issue.due_date[5:7] }}/{{ issue.due_date[:4] }}{% else %}<span class="muted">—</span>{% endif %}
+                      {% if issue.date_conflict %}<br><span class="warning">End date precedes start date</span>{% endif %}
+                    </td>
+                    <td class="issue-key">{% if issue.url %}<a href="{{ issue.url }}" target="_blank" rel="noopener noreferrer">{{ issue.key }}</a>{% elif issue.key == "TBD" %}<strong class="issue-key-placeholder">{{ issue.key }}</strong>{% else %}<strong>{{ issue.key }}</strong>{% endif %}</td>
+                    <td>
+                      <span class="summary">{{ issue.summary }}</span>
+                      {% if issue.description %}<span class="summary issue-description">{{ issue.description }}</span>{% endif %}
+                    </td>
+                    <td><span class="type-tag">{{ issue.issue_type }}</span></td>
+                    <td><span class="badge">{{ issue.status }}</span></td>
+                    <td>
+                      <span class="priority priority-{{ issue.priority_color }}" title="{{ issue.priority }}" aria-label="Priority: {{ issue.priority }}">
+                        <span class="priority-icon" aria-hidden="true">{{ issue.priority_icon }}</span>{{ issue.priority }}
+                      </span>
+                    </td>
+                    <td>{{ issue.assignee }}</td>
+                    <td>{{ issue.business_sponsor or "—" }}</td>
+                  </tr>
+                {% endfor %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </section>
+        <section class="panel timeline-scroll" id="timeline-panel" role="tabpanel" aria-labelledby="timeline-tab" hidden>
+          <div class="status-legend" aria-label="Legend for timeline status colors">
+            <span class="legend-item"><span class="legend-swatch status-completed"></span>Terminé</span>
+            <span class="legend-item"><span class="legend-swatch status-in-progress"></span>En cours</span>
+            <span class="legend-item"><span class="legend-swatch status-framing"></span>En cadrage</span>
+            <span class="legend-item"><span class="legend-swatch status-backlog"></span>Backlog</span>
+            <span class="legend-item"><span class="legend-swatch status-blocked"></span>Bloqué</span>
+          </div>
+          {% if timeline.months %}
+            <div class="timeline-chart">
+              <div class="timeline-header">
+                <div class="timeline-label">Issue</div>
+                <div class="timeline-track timeline-axis">
+                  {% for month in timeline.months %}
+                    <span class="month-tick" style="left: {{ month.left }}%"><span class="month-label">{{ month.label }}</span></span>
+                  {% endfor %}
+                </div>
+              </div>
+              {% for group in timeline.groups %}
+                <div class="timeline-group">
+                  <span class="domain-tag domain-{{ group.domain_color }}">{{ group.domain }}</span>
+                </div>
+                {% for issue in group.issues %}
+                  <div class="timeline-row">
+                    <div class="timeline-issue">
+                      <strong>{{ issue.summary }}</strong>
+                      <span class="type-tag">{{ issue.issue_type }}</span>
+                      <span class="muted">{{ issue.start_date or issue.due_date or "No dates" }}{% if issue.start_date and issue.due_date %} – {{ issue.due_date }}{% endif %}</span>
+                    </div>
+                    <div class="timeline-track">
+                      {% for month in timeline.months %}<span class="timeline-gridline" style="left: {{ month.left }}%"></span>{% endfor %}
+                      {% if issue.timeline_left is not none %}
+                        {% if issue.timeline_width == "0" %}
+                          {% if issue.url %}<a class="timeline-milestone status-{{ issue.status_color }}" href="{{ issue.url }}" target="_blank" rel="noopener noreferrer" style="left: {{ issue.timeline_left }}%" title="{{ issue.start_date or issue.due_date }}" aria-label="{{ issue.key }} — {{ issue.status }}"><span class="timeline-point status-{{ issue.status_color }}" aria-hidden="true"></span>{{ issue.key }} — {{ issue.status }}</a>{% else %}<span class="timeline-milestone status-{{ issue.status_color }}" style="left: {{ issue.timeline_left }}%" title="{{ issue.start_date or issue.due_date }}"><span class="timeline-point status-{{ issue.status_color }}" aria-hidden="true"></span>{{ issue.key }} — {{ issue.status }}</span>{% endif %}
+                        {% else %}
+                          {% if issue.url %}<a class="timeline-bar status-{{ issue.status_color }}" href="{{ issue.url }}" target="_blank" rel="noopener noreferrer" style="left: {{ issue.timeline_left }}%; width: {{ issue.timeline_width }}%" title="{{ issue.start_date or issue.due_date }} – {{ issue.due_date or issue.start_date }}">{{ issue.key }} — {{ issue.status }}</a>{% else %}<span class="timeline-bar status-{{ issue.status_color }}" style="left: {{ issue.timeline_left }}%; width: {{ issue.timeline_width }}%" title="{{ issue.start_date or issue.due_date }} – {{ issue.due_date or issue.start_date }}">{{ issue.key }} — {{ issue.status }}</span>{% endif %}
+                        {% endif %}
+                      {% elif issue.date_conflict %}
+                        <span class="timeline-warning">Dates à corriger — fin avant le début</span>
+                      {% else %}
+                        <span class="timeline-warning">Dates non renseignées</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="empty">Aucune date exploitable pour afficher la timeline.</div>
+          {% endif %}
+        </section>
+      {% elif not setup_error and not error %}
+        <section class="panel empty">No matching issues found for this project.</section>
+      {% endif %}
+    </main>
+    <script>
+      const tabs = document.querySelectorAll('[role="tab"]');
+      const addIssueDialog = document.getElementById('add-issue-dialog');
+      const issueForm = addIssueDialog.querySelector('.issue-form');
+      const issueKeyInput = issueForm.querySelector('[name="key"]');
+      const issueContextMenu = document.getElementById('issue-context-menu');
+      const deleteIssueForm = document.getElementById('delete-issue-form');
+      const confirmDeleteDialog = document.getElementById('confirm-delete-dialog');
+      const confirmDeleteMessage = document.getElementById('confirm-delete-message');
+      let contextIssueRow = null;
+      let pendingDeleteRow = null;
+      const resetIssueForm = () => {
+        issueForm.reset();
+        issueForm.action = issueForm.dataset.addAction;
+        issueForm.dataset.editing = 'false';
+        issueKeyInput.readOnly = false;
+        document.getElementById('add-issue-title').textContent = 'Nouveau chantier';
+        issueForm.querySelector('[type="submit"]').textContent = 'Ajouter le chantier';
+      };
+      document.getElementById('open-add-issue').addEventListener('click', () => {
+        resetIssueForm();
+        addIssueDialog.showModal();
+      });
+      document.getElementById('close-add-issue').addEventListener('click', () => addIssueDialog.close());
+      document.getElementById('cancel-add-issue').addEventListener('click', () => addIssueDialog.close());
+      const closeIssueContextMenu = () => {
+        issueContextMenu.hidden = true;
+        contextIssueRow = null;
+      };
+      const openIssueContextMenu = (row, x, y) => {
+        contextIssueRow = row;
+        issueContextMenu.hidden = false;
+        issueContextMenu.style.left = `${Math.max(8, Math.min(x, window.innerWidth - 190))}px`;
+        issueContextMenu.style.top = `${Math.max(8, Math.min(y, window.innerHeight - 90))}px`;
+        issueContextMenu.querySelector('[data-action="edit"]').focus();
+      };
+      const editIssueRow = (row) => {
+        const issue = JSON.parse(row.dataset.issue);
+        issueForm.action = row.dataset.editUrl;
+        issueForm.dataset.editing = 'true';
+        document.getElementById('add-issue-title').textContent = 'Modifier le chantier';
+        issueForm.querySelector('[type="submit"]').textContent = 'Enregistrer les modifications';
+        issueKeyInput.readOnly = false;
+        ['key', 'summary', 'issue_type', 'status', 'priority', 'assignee', 'domain',
+          'business_sponsor', 'start_date', 'due_date', 'description'].forEach((name) => {
+          const value = name === 'issue_type'
+            ? ({ONBOARDING: 'Onboarding', UPGRADE: 'Upgrade', IMPROVEMENT: 'Improvement'}[issue[name]] || issue[name])
+            : issue[name];
+          issueForm.elements.namedItem(name).value = value || '';
+        });
+        addIssueDialog.showModal();
+      };
+      document.querySelectorAll('.issue-row[data-edit-url]').forEach((row) => {
+        row.addEventListener('contextmenu', (event) => {
+          if (event.target.closest('a')) return;
+          event.preventDefault();
+          openIssueContextMenu(row, event.clientX, event.clientY);
+        });
+        row.addEventListener('keydown', (event) => {
+          if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+            event.preventDefault();
+            const bounds = row.getBoundingClientRect();
+            openIssueContextMenu(row, bounds.left + 24, bounds.top + 24);
+          }
+        });
+      });
+      issueContextMenu.addEventListener('click', (event) => {
+        const action = event.target.closest('[data-action]')?.dataset.action;
+        const row = contextIssueRow;
+        closeIssueContextMenu();
+        if (!row) return;
+        if (action === 'edit') {
+          editIssueRow(row);
+        } else if (action === 'delete') {
+          pendingDeleteRow = row;
+          confirmDeleteMessage.textContent = `Voulez-vous vraiment supprimer « ${JSON.parse(row.dataset.issue).summary} » de cette roadmap locale ? Cette action est définitive.`;
+          confirmDeleteDialog.showModal();
+        }
+      });
+      document.getElementById('cancel-delete-issue').addEventListener('click', () => {
+        pendingDeleteRow = null;
+        confirmDeleteDialog.close();
+      });
+      document.getElementById('confirm-delete-issue').addEventListener('click', () => {
+        if (!pendingDeleteRow) return;
+        deleteIssueForm.action = pendingDeleteRow.dataset.deleteUrl;
+        deleteIssueForm.requestSubmit();
+      });
+      confirmDeleteDialog.addEventListener('close', () => {
+        if (confirmDeleteDialog.returnValue !== 'confirmed') pendingDeleteRow = null;
+        confirmDeleteDialog.returnValue = '';
+      });
+      document.addEventListener('click', (event) => {
+        if (!issueContextMenu.contains(event.target)) closeIssueContextMenu();
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeIssueContextMenu();
+      });
+      issueForm.addEventListener('submit', (event) => {
+        if (!issueKeyInput.value.trim()) {
+          if (!window.confirm('Aucune clé Jira n’a été saisie. La clé sera remplacée par TBD. Continuer ?')) {
+            event.preventDefault();
+            return;
+          }
+          issueKeyInput.value = 'TBD';
+        }
+      });
+      addIssueDialog.addEventListener('click', (event) => {
+        if (event.target === addIssueDialog) addIssueDialog.close();
+      });
+      const selectTab = (tab) => {
+        tabs.forEach((item) => {
+          const selected = item === tab;
+          item.setAttribute('aria-selected', String(selected));
+          item.tabIndex = selected ? 0 : -1;
+          document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
+        });
+        tab.focus();
+      };
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => selectTab(tab));
+        tab.addEventListener('keydown', (event) => {
+          const current = Array.from(tabs).indexOf(tab);
+          let next;
+          if (event.key === 'ArrowRight') next = (current + 1) % tabs.length;
+          if (event.key === 'ArrowLeft') next = (current - 1 + tabs.length) % tabs.length;
+          if (event.key === 'Home') next = 0;
+          if (event.key === 'End') next = tabs.length - 1;
+          if (next !== undefined) {
+            event.preventDefault();
+            selectTab(tabs[next]);
+          }
+        });
+      });
+
+      const roadmapTable = document.getElementById('roadmap-table');
+      if (roadmapTable) {
+        const tablePanel = document.getElementById('table-panel');
+        const issueRows = Array.from(roadmapTable.querySelectorAll('.issue-row'));
+        const updateTable = () => {
+          const textFilters = Array.from(tablePanel.querySelectorAll('[data-text-filter]'));
+          const dateFilters = Array.from(tablePanel.querySelectorAll('[data-date-filter]'));
+          const multiFilters = Array.from(tablePanel.querySelectorAll('[data-multi-filter]'));
+          const selectedValues = (column) => multiFilters
+            .filter((input) => input.dataset.multiFilter === column && input.checked)
+            .map((input) => input.value);
+
+          issueRows.forEach((row) => {
+            let visible = textFilters.every((input) =>
+              row.dataset[input.dataset.textFilter].toLocaleLowerCase().includes(input.value.trim().toLocaleLowerCase())
+            );
+            visible = visible && dateFilters.every((input) => {
+              if (!input.value) return true;
+              const actual = row.dataset[input.dataset.dateFilter];
+              if (!actual) return false;
+              const operator = roadmapTable.querySelector(`[data-date-operator="${input.dataset.dateFilter}"]`).value;
+              return operator === 'on-or-before' ? actual <= input.value : actual >= input.value;
+            });
+            visible = visible && ['status', 'issue_type', 'domain'].every((column) => {
+              const selected = selectedValues(column);
+              return !selected.length || selected.includes(row.dataset[column]);
+            });
+            row.hidden = !visible;
+          });
+
+          roadmapTable.querySelectorAll('.table-group').forEach((group) => {
+            group.hidden = !issueRows.some((row) => row.dataset.group === group.dataset.group && !row.hidden);
+          });
+        };
+
+        tablePanel.querySelectorAll('[data-text-filter], [data-date-filter], [data-multi-filter]').forEach((filter) => {
+          filter.addEventListener(filter.type === 'checkbox' || filter.type === 'date' ? 'change' : 'input', updateTable);
+        });
+        roadmapTable.querySelectorAll('[data-date-operator]').forEach((filter) => filter.addEventListener('change', updateTable));
+
+        tablePanel.querySelectorAll('.sort-choice').forEach((button) => {
+          button.addEventListener('click', () => {
+            const sortColumn = button.dataset.sort;
+            const sortDirection = button.dataset.direction === 'asc' ? 1 : -1;
+            const tbody = roadmapTable.tBodies[0];
+            const groups = Array.from(roadmapTable.querySelectorAll('.table-group'));
+            if (sortColumn === 'domain') {
+              groups.sort((left, right) =>
+                left.dataset.group.localeCompare(right.dataset.group, undefined, {numeric: true}) * sortDirection
+              );
+            }
+            groups.forEach((group) => {
+              const rows = issueRows
+                .filter((row) => row.dataset.group === group.dataset.group)
+                .sort((left, right) => {
+                  const a = left.dataset[sortColumn].toLocaleLowerCase();
+                  const b = right.dataset[sortColumn].toLocaleLowerCase();
+                  return a.localeCompare(b, undefined, {numeric: true}) * sortDirection;
+                });
+              tbody.append(group, ...rows);
+            });
+            roadmapTable.querySelectorAll('thead tr th').forEach((header) => header.removeAttribute('aria-sort'));
+            const header = button.closest('th');
+            if (header) {
+              header.setAttribute('aria-sort', sortDirection === 1 ? 'ascending' : 'descending');
+            } else {
+              tablePanel.querySelectorAll('[data-sort="domain"]').forEach((choice) => {
+                choice.setAttribute('aria-pressed', String(choice === button));
+              });
+            }
+            button.closest('details').open = false;
+            updateTable();
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
